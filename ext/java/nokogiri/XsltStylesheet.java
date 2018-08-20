@@ -17,10 +17,10 @@
  * distribute, sublicense, and/or sell copies of the Software, and to
  * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -91,7 +91,7 @@ public class XsltStylesheet extends RubyObject {
     public XsltStylesheet(Ruby ruby, RubyClass rubyClass) {
         super(ruby, rubyClass);
     }
-    
+
     /**
      * Create and return a copy of this object.
      *
@@ -113,7 +113,7 @@ public class XsltStylesheet extends RubyObject {
             throw runtime.newTypeError("parameters should be given either Array or Hash");
         }
     }
-    
+
     private void setHashParameters(Transformer transformer, RubyHash hash) {
         Set<String> keys = hash.keySet();
         for (String key : keys) {
@@ -121,7 +121,7 @@ public class XsltStylesheet extends RubyObject {
             transformer.setParameter(key, unparseValue(value));
         }
     }
-    
+
     private void setArrayParameters(Transformer transformer, Ruby runtime, RubyArray params) {
         int limit = params.getLength();
         if(limit % 2 == 1) limit--;
@@ -132,7 +132,7 @@ public class XsltStylesheet extends RubyObject {
             transformer.setParameter(name, unparseValue(value));
         }
     }
-    
+
     private Pattern p = Pattern.compile("'.{1,}'");
 
     private String unparseValue(String orig) {
@@ -146,14 +146,14 @@ public class XsltStylesheet extends RubyObject {
 
     @JRubyMethod(meta = true, rest = true)
     public static IRubyObject parse_stylesheet_doc(ThreadContext context, IRubyObject klazz, IRubyObject[] args) {
-        
+
         Ruby runtime = context.getRuntime();
 
         ensureFirstArgIsDocument(runtime, args[0]);
 
         XmlDocument xmlDoc = (XmlDocument) args[0];
         ensureDocumentHasNoError(context, xmlDoc);
-        
+
         Document doc = ((XmlDocument) xmlDoc.dup_implementation(context, true)).getDocument();
 
         XsltStylesheet xslt =
@@ -167,7 +167,7 @@ public class XsltStylesheet extends RubyObject {
 
         return xslt;
     }
-    
+
     private void init(IRubyObject stylesheet, Document document) throws TransformerConfigurationException {
         this.stylesheet = stylesheet;  // either RubyString or RubyFile
         if (factory == null) factory = TransformerFactory.newInstance();
@@ -175,7 +175,7 @@ public class XsltStylesheet extends RubyObject {
         factory.setErrorListener(elistener);
         sheet = factory.newTemplates(new DOMSource(document));
     }
-    
+
     private static void ensureFirstArgIsDocument(Ruby runtime, IRubyObject arg) {
         if (arg instanceof XmlDocument) {
             return;
@@ -183,7 +183,7 @@ public class XsltStylesheet extends RubyObject {
             throw runtime.newArgumentError("doc must be a Nokogiri::XML::Document instance");
         }
     }
-    
+
     private static void ensureDocumentHasNoError(ThreadContext context, XmlDocument xmlDoc) {
         Ruby runtime = context.getRuntime();
         RubyArray errors_of_xmlDoc = (RubyArray) xmlDoc.getInstanceVariable("@errors");
@@ -240,7 +240,7 @@ public class XsltStylesheet extends RubyObject {
             return createDocumentFromString(context, runtime, stringResult);
         }
     }
-    
+
     private DOMResult tryXsltTransformation(ThreadContext context, IRubyObject[] args, DOMSource domSource, NokogiriXsltErrorListener elistener) throws TransformerException {
         Transformer transf = sheet.newTransformer();
         transf.reset();
@@ -253,7 +253,7 @@ public class XsltStylesheet extends RubyObject {
         transf.transform(domSource, result);
         return result;
     }
-    
+
     private String retryXsltTransformation(ThreadContext context,
                                            IRubyObject[] args,
                                            DOMSource domSource,
@@ -276,20 +276,20 @@ public class XsltStylesheet extends RubyObject {
         StringBuilder builder = new StringBuilder(len);
         builder.append(cbuf, 0, len);
         htmlish = isHtml(builder); // judge from the first chunk
-        
+
         while (len == 1024) {
             len = preader.read(cbuf, 0, 1024);
             if (len > 0) {
                 builder.append(cbuf, 0, len);
             }
         }
-        
+
         preader.close();
         pwriter.close();
-        
+
         return builder.toString();
     }
-    
+
     private IRubyObject createDocumentFromDomResult(ThreadContext context, Ruby runtime, DOMResult domResult) {
         if ("html".equals(domResult.getNode().getFirstChild().getNodeName())) {
             HtmlDocument htmlDocument = (HtmlDocument) getNokogiriClass(runtime, "Nokogiri::HTML::Document").allocate();
@@ -301,7 +301,7 @@ public class XsltStylesheet extends RubyObject {
             return xmlDocument;
         }
     }
-    
+
     private Templates getTemplatesFromStreamSource() throws TransformerConfigurationException {
         if (stylesheet instanceof RubyString) {
             StringReader reader = new StringReader(stylesheet.asJavaString());
@@ -310,14 +310,14 @@ public class XsltStylesheet extends RubyObject {
         }
         return null;
     }
-    
+
     private static final Pattern HTML_TAG = Pattern.compile("<(%s)*html", Pattern.CASE_INSENSITIVE);
-    
+
     private static boolean isHtml(CharSequence chunk) {
         Matcher match = HTML_TAG.matcher(chunk);
         return match.find();
     }
-    
+
     private IRubyObject createDocumentFromString(ThreadContext context, Ruby runtime, String stringResult) {
         IRubyObject[] args = new IRubyObject[4];
         args[0] = stringOrBlank(runtime, stringResult);
@@ -330,7 +330,7 @@ public class XsltStylesheet extends RubyObject {
             return RuntimeHelpers.invoke(context, htmlDocumentClass, "parse", args);
         } else {
             args[3] = parse_options.getConstant("DEFAULT_XML");
-            RubyClass xmlDocumentClass = getNokogiriClass(runtime, "Nokogiri::XML::Document");            
+            RubyClass xmlDocumentClass = getNokogiriClass(runtime, "Nokogiri::XML::Document");
             XmlDocument xmlDocument = (XmlDocument) RuntimeHelpers.invoke(context, xmlDocumentClass, "parse", args);
             if (((Document)xmlDocument.getNode()).getDocumentElement() == null) {
                 RubyArray errors = (RubyArray) xmlDocument.getInstanceVariable("@errors");
@@ -339,12 +339,12 @@ public class XsltStylesheet extends RubyObject {
             return xmlDocument;
         }
     }
-    
+
     private static void argumentTypeCheck(Ruby runtime, IRubyObject arg) {
         if (arg instanceof XmlDocument) return;
         throw runtime.newArgumentError("argument must be a Nokogiri::XML::Document");
     }
-    
+
     @JRubyMethod(name = {"registr", "register"}, meta = true)
     public static IRubyObject register(ThreadContext context, IRubyObject cls, IRubyObject uri, IRubyObject receiver) {
         throw context.getRuntime().newNotImplementedError("Nokogiri::XSLT.register method is not implemented");
@@ -354,5 +354,12 @@ public class XsltStylesheet extends RubyObject {
         registry.put("receiver", receiver);
         return context.getRuntime().getNil();
         */
+    }
+
+    @JRubyMethod(meta = true, rest = true)
+    public static IRubyObject set_default_security_prefs(ThreadContext context, IRubyObject klazz, IRubyObject[] args) {
+        // This method is not supported because the Java XML backend does not support the
+        // security controls supported by the libxml backend
+        throw context.getRuntime().newNotImplementedError("Nokogiri::XSLT.set_default_security_prefs method is not implemented");
     }
 }

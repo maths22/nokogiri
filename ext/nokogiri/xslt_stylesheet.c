@@ -2,10 +2,16 @@
 
 #include <libxslt/xsltInternals.h>
 #include <libxslt/xsltutils.h>
+#include <libxslt/security.h>
 #include <libxslt/transform.h>
 #include <libexslt/exslt.h>
 
 VALUE xslt;
+
+enum xsltSecurityAction {
+  XSLT_SEC_FORBID = 1,
+  XSLT_SEC_ALLOW = 2
+};
 
 int vasprintf (char **strp, const char *fmt, va_list ap);
 void vasprintf_free (void *p);
@@ -249,6 +255,29 @@ static VALUE registr(VALUE self, VALUE uri, VALUE obj)
     return self;
 }
 
+int add_sec_pref(VALUE key, VALUE val, VALUE in)
+{
+  Check_Type(key, T_FIXNUM);
+  Check_Type(val, T_FIXNUM);
+  xsltSecurityPrefsPtr xsltPrefs = (xsltSecurityPrefsPtr) in;
+  if(NUM2INT(val) == XSLT_SEC_FORBID) {
+    xsltSetSecurityPrefs(xsltPrefs, NUM2INT(key), xsltSecurityForbid);
+  } else if(NUM2INT(val) == XSLT_SEC_ALLOW) {
+    xsltSetSecurityPrefs(xsltPrefs, NUM2INT(key), xsltSecurityAllow);
+  }
+
+  return ST_CONTINUE;
+}
+
+static VALUE set_default_security_prefs(VALUE self, VALUE prefs)
+{
+  Check_Type(prefs, T_HASH);
+  xsltSecurityPrefsPtr xsltPrefs = xsltNewSecurityPrefs();
+  rb_hash_foreach(prefs, add_sec_pref, (VALUE)xsltPrefs);
+  xsltSetDefaultSecurityPrefs(xsltPrefs);
+  return Qnil;
+}
+
 VALUE cNokogiriXsltStylesheet ;
 void init_xslt_stylesheet()
 {
@@ -264,6 +293,7 @@ void init_xslt_stylesheet()
   cNokogiriXsltStylesheet = klass;
 
   rb_define_singleton_method(klass, "parse_stylesheet_doc", parse_stylesheet_doc, 1);
+  rb_define_singleton_method(klass, "set_default_security_prefs", set_default_security_prefs, 1);
   rb_define_singleton_method(xslt, "register", registr, 2);
   rb_define_method(klass, "serialize", serialize, 1);
   rb_define_method(klass, "transform", transform, -1);

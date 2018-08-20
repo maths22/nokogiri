@@ -245,6 +245,7 @@ lib/nokogiri/xml/xpath/syntax_error.rb
 lib/nokogiri/xml/xpath_context.rb
 lib/nokogiri/xslt.rb
 lib/nokogiri/xslt/stylesheet.rb
+lib/nokogiri/xslt/security.rb
 lib/serializer.jar
 lib/xalan.jar
 lib/xercesImpl.jar

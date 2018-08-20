@@ -1,4 +1,5 @@
 require 'nokogiri/xslt/stylesheet'
+require 'nokogiri/xslt/security'
 
 module Nokogiri
   class << self
@@ -18,6 +19,8 @@ module Nokogiri
   # See Nokogiri::XSLT::Stylesheet for creating and manipulating
   # Stylesheet object.
   module XSLT
+    include Nokogiri::XSLT::Security
+
     class << self
       ###
       # Parse the stylesheet in +string+, register any +modules+
@@ -31,6 +34,10 @@ module Nokogiri
         else
           Stylesheet.parse_stylesheet_doc(XML.parse(string))
         end
+      end
+
+      def set_default_security_prefs prefs
+        Stylesheet.set_default_security_prefs(prefs.map{|k,v| { Security.keys[k] => v}}.reduce(:merge))
       end
 
       ###

@@ -8,11 +8,6 @@
 
 VALUE xslt;
 
-enum xsltSecurityAction {
-  XSLT_SEC_FORBID = 1,
-  XSLT_SEC_ALLOW = 2
-};
-
 int vasprintf (char **strp, const char *fmt, va_list ap);
 void vasprintf_free (void *p);
 
@@ -257,13 +252,11 @@ static VALUE registr(VALUE self, VALUE uri, VALUE obj)
 
 int add_sec_pref(VALUE key, VALUE val, VALUE in)
 {
-  Check_Type(key, T_FIXNUM);
-  Check_Type(val, T_FIXNUM);
   xsltSecurityPrefsPtr xsltPrefs = (xsltSecurityPrefsPtr) in;
-  if(NUM2INT(val) == XSLT_SEC_FORBID) {
-    xsltSetSecurityPrefs(xsltPrefs, NUM2INT(key), xsltSecurityForbid);
-  } else if(NUM2INT(val) == XSLT_SEC_ALLOW) {
+  if(val == Qtrue) {
     xsltSetSecurityPrefs(xsltPrefs, NUM2INT(key), xsltSecurityAllow);
+  } else if(val == Qfalse) {
+    xsltSetSecurityPrefs(xsltPrefs, NUM2INT(key), xsltSecurityForbid);
   }
 
   return ST_CONTINUE;

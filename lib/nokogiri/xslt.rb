@@ -36,8 +36,11 @@ module Nokogiri
         end
       end
 
+      ###
+      # Set the default security options used by libxslt
+      # +prefs+ should be an object of type Nokogiri::XSLT::Security::Config
       def set_default_security_prefs prefs
-        Stylesheet.set_default_security_prefs(prefs.map{|k,v| { Security.keys[k] => v}}.reduce(:merge))
+        Stylesheet.set_default_security_prefs(Security.keys.map{|k,v| { v => prefs.send(k)  }}.reduce(:merge))
       end
 
       ###

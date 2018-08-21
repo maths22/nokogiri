@@ -1,7 +1,6 @@
 require "helper"
 
 class TestXsltTransforms < Nokogiri::TestCase
-  include Nokogiri::XSLT::Security
 
   def setup
     @doc = Nokogiri::XML(File.open(XML_FILE))
@@ -197,11 +196,18 @@ encoding="iso-8859-1" indent="yes"/>
 
   if Nokogiri.uses_libxml?
     def test_set_default_security_prefs
-      Nokogiri::XSLT.set_default_security_prefs({ READ_FILE: FORBID})
+      # Default should be secure
+      sec_prefs = Nokogiri::XSLT::Security::Config.new
+      Nokogiri::XSLT.set_default_security_prefs(sec_prefs)
       assert_raises(RuntimeError) { Nokogiri::XSLT(File.open(XSLT_INCLUDING_FILE)) }
 
-      Nokogiri::XSLT.set_default_security_prefs({ READ_FILE: ALLOW})
+      sec_prefs.allow_read_file = true
+      Nokogiri::XSLT.set_default_security_prefs(sec_prefs)
       assert doc = Nokogiri::XSLT(File.open(XSLT_INCLUDING_FILE))
+
+      sec_prefs.allow_read_file = false
+      Nokogiri::XSLT.set_default_security_prefs(sec_prefs)
+      assert_raises(RuntimeError) { Nokogiri::XSLT(File.open(XSLT_INCLUDING_FILE)) }
     end
   end
 
